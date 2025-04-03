@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor with AR</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.3.1/aframe/ar.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            flex-direction: column;
+        }
+        .chat-container {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        h2 {
+            text-align: center;
+        }
+        #chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            text-align: right;
+        }
+        .ai-message {
+            background: #f1f1f1;
+            color: black;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        input {
+            width: calc(100% - 60px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>AI Tutor</h2>
+        <div id="chat-box"></div>
+        <input type="text" id="question" placeholder="Ask a question...">
+        <button onclick="askQuestion()">Ask</button>
+    </div>
+    
+    <a-scene embedded arjs>
+        <a-marker preset="hiro">
+            <a-entity id="ar-text" text="value: Welcome to AI Tutor; color: white; align: center;" position="0 0 0"></a-entity>
+        </a-marker>
+    </a-scene>
+    
+    <script>
+        // Function to display user question
+        function displayUserQuestion(question) {
+            const chatBox = document.getElementById("chat-box");
+            const userMessage = document.createElement("div");
+            userMessage.className = "user-message";
+            userMessage.innerText = "You: " + question;
+            chatBox.appendChild(userMessage);
+        }
+
+        // Function to fetch AI response from the backend
+        async function fetchAiResponse(question) {
+            try {
+                const response = await fetch('http://localhost:3000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error("Error fetching AI response:", error);
+                throw error;
+            }
+        }
+
+        // Function to display AI response
+        function displayAiResponse(aiReply) {
+            const chatBox = document.getElementById("chat-box");
+            const aiMessage = document.createElement("div");
+            aiMessage.className = "ai-message";
+            aiMessage.innerText = "Tutor: " + aiReply;
+            chatBox.appendChild(aiMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Update AR text
+            const arText = document.getElementById("ar-text");
+            if (arText) {
+                arText.setAttribute('text', { value: aiReply });
+            }
+        }
+
+        // Main askQuestion function
+        async function askQuestion() {
+            const questionInput = document.getElementById("question");
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            displayUserQuestion(question);
+            questionInput.value = "";
+
+            try {
+                const data = await fetchAiResponse(question);
+                const aiReply = data.choices?.[0]?.message?.content || "No response available";
+                displayAiResponse(aiReply);
+            } catch (error) {
+                const errorMessage = document.createElement("div");
+                errorMessage.className = "ai-message";
+                errorMessage.innerText = "Tutor: Sorry, there was an issue getting a response.";
+                const chatBox = document.getElementById("chat-box");
+                chatBox.appendChild(errorMessage);
+            }
+        }
+    </script>
+</body>
+</html>
