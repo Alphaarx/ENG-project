@@ -1,4 +1,29 @@
-% Simple Chatbot in MATLAB
+clc;
+clear;
+
+disp('AI Tutor: Hello! I''m your AI Tutor. Ask me anything, or type "bye" to exit.');
+
+while true
+    userInput = lower(input('You: ', 's'));
+    
+    if strcmp(userInput, 'bye')
+        disp('AI Tutor: Goodbye! Keep learning and stay curious!');
+        break;
+    end
+
+    switch true
+        case contains(userInput, 'hello') || contains(userInput, 'hi')
+            disp('AI Tutor: Hi there! How can I help you today?');
+        case contains(userInput, 'who are you')
+            disp('AI Tutor: I am your AI tutor, here to help you learn and grow!');
+        case contains(userInput, 'what is newton''s first law')
+            disp('AI Tutor: Newton''s First Law states that an object will stay at rest or move at a constant velocity unless acted upon by a force.');
+        case contains(userInput, 'help') || contains(userInput, 'what can you do')
+            disp('AI Tutor: I can explain science concepts, help with math, and answer questions. Try asking me something!');
+        otherwise
+            disp('AI Tutor: Hmm, I''m still learning. Could you rephrase that or ask something else?');
+    end
+end% Simple Chatbot in MATLAB
 clc;
 clear;
 
